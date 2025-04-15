@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:untitled1/constant/constant.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:untitled1/constant/constant.dart';
 import 'package:untitled1/screens/home_screen.dart';
 import 'package:untitled1/screens/signin_screen.dart';
+import 'package:untitled1/utils/snackbar.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -19,72 +20,42 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
-      String username = _usernameController.text;
-      String password = _passwordController.text;
-
-      setState(() {
-        _isLoading = true;
-      });
+      setState(() => _isLoading = true);
 
       try {
         final response = await http.post(
           Uri.parse(API_Login),
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
+          headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
-            'username': username,
-            'password': password,
+            'username': _usernameController.text,
+            'password': _passwordController.text,
           }),
         );
 
-        final responseData = jsonDecode(response.body);
+        final data = jsonDecode(response.body);
 
         if (response.statusCode == 200) {
-          final String accessToken = responseData['tokens']['access'];
-          final String refreshToken = responseData['tokens']['refresh'];
-          final String info = responseData['user']['username'];
-
           final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('access_token', accessToken);
-          await prefs.setString('refresh_token', refreshToken);
-          print('Thông tin người dùng: $info');
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Đăng nhập thành công')),
+          await prefs.setString('access_token', data['tokens']['access']);
+          await prefs.setString('refresh_token', data['tokens']['refresh']);
 
-          );
+          showCustomSnackBar(context, 'Đăng nhập thành công!', backgroundColor: Colors.greenAccent);
 
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => HomeScreen()),
+            MaterialPageRoute(builder: (_) => HomeScreen()),
           );
         } else {
-          String errorMessage = 'Đăng nhập thất bại';
-          if (response.statusCode == 401) {
-            errorMessage = 'Tài khoản hoặc mật khẩu không đúng';
-          } else if (response.statusCode == 400) {
-            errorMessage = responseData['message'] ?? 'Dữ liệu không hợp lệ';
-          }
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(errorMessage),
-              backgroundColor: Colors.red,
-            ),
+          showCustomSnackBar(
+            context,
+            data['message'] ?? 'Tài khoản hoặc mật khẩu không đúng',
+            backgroundColor: Colors.redAccent,
           );
         }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Không thể kết nối đến server: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showCustomSnackBar(context, 'Lỗi kết nối: $e', backgroundColor: Colors.redAccent);
       } finally {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
       }
     }
   }
@@ -92,79 +63,82 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Text(
-                  'Đăng nhập',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
-                ),
-              ),
-              SizedBox(height: 20),
-              _buildTextField(
-                controller: _usernameController,
-                label: 'Tên tài khoản',
-                icon: Icons.person,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Vui lòng nhập tên tài khoản';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 15),
-              _buildTextField(
-                controller: _passwordController,
-                label: 'Mật khẩu',
-                icon: Icons.lock,
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Vui lòng nhập mật khẩu';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 30),
-              Center(
-                child: _isLoading
-                    ? CircularProgressIndicator()
-                    : ElevatedButton(
-                  onPressed: _login,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFFB3A0FF), // Màu tím nhạt
-                    minimumSize: Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+      backgroundColor: Colors.grey.shade100,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.lock_outline, size: 100, color: Colors.deepPurpleAccent),
+                  SizedBox(height: 20),
+                  Text(
+                    'Chào mừng trở lại!',
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
                   ),
-                  child: Text(
-                    'Đăng nhập',
-                    style: TextStyle(fontSize: 16, color: Colors.white),
+                  SizedBox(height: 40),
+                  _buildTextField(
+                    controller: _usernameController,
+                    icon: Icons.person_outline,
+                    label: 'Tên tài khoản',
                   ),
-                ),
-              ),
-              SizedBox(height: 15),
-              Center(
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => RegisterScreen()),
-                    );
-                  },
-                  child: Text(
-                    'Chưa có tài khoản? Đăng ký ngay',
-                    style: TextStyle(fontSize: 14, color: Colors.black54),
+                  SizedBox(height: 20),
+                  _buildTextField(
+                    controller: _passwordController,
+                    icon: Icons.lock_outline,
+                    label: 'Mật khẩu',
+                    obscureText: true,
                   ),
-                ),
+                  SizedBox(height: 40),
+                  _isLoading
+                      ? CircularProgressIndicator(color: Colors.deepPurpleAccent)
+                      : ElevatedButton(
+                    onPressed: _login,
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      backgroundColor: Colors.deepPurpleAccent,
+                      minimumSize: Size(double.infinity, 0),
+                      elevation: 5,
+                      shadowColor: Colors.deepPurpleAccent.withOpacity(0.4),
+                    ),
+                    child: Text(
+                      'Đăng nhập',
+                      style: TextStyle(fontSize: 18, color: Colors.white),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Chưa có tài khoản?',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => RegisterScreen()),
+                        ),
+                        child: Text(
+                          'Đăng ký ngay',
+                          style: TextStyle(fontSize: 16, color: Colors.deepPurpleAccent),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -173,22 +147,35 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildTextField({
     required TextEditingController controller,
-    required String label,
     required IconData icon,
+    required String label,
     bool obscureText = false,
-    String? Function(String?)? validator,
   }) {
-    return TextFormField(
-      controller: controller,
-      obscureText: obscureText,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: Colors.black54),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade300,
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
-      validator: validator,
+      child: TextFormField(
+        controller: controller,
+        obscureText: obscureText,
+        decoration: InputDecoration(
+          prefixIcon: Icon(icon, color: Colors.deepPurpleAccent),
+          labelText: label,
+          labelStyle: TextStyle(color: Colors.grey.shade600),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+        ),
+        validator: (value) =>
+        value!.isEmpty ? 'Vui lòng nhập $label' : null,
+      ),
     );
   }
 }

@@ -1,108 +1,220 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
-import 'package:untitled1/constant/constant.dart';
-import 'dart:io';
-import 'dart:convert';
-import 'login_screen.dart';
+import 'package:untitled1/screens/cccd_screen/ocr_cccd.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final ImagePicker _picker = ImagePicker();
-  XFile? _image; // Để lưu ảnh đã chụp
+  int _selectedIndex = 1;
 
-  // Hàm chụp ảnh và gửi ảnh
-  Future<void> _takePicture() async {
-    try {
-      final pickedImage = await _picker.pickImage(source: ImageSource.camera);
-      if (pickedImage != null) {
-        setState(() {
-          _image = pickedImage;
-        });
-        print('Đường dẫn ảnh: ${_image!.path}');
-
-        // Gửi ảnh tới API
-        await _uploadImage(File(_image!.path));
-      }
-    } catch (e) {
-      print('Lỗi khi chụp ảnh: $e');
+  // Xử lý khi nhấn vào các mục trên thanh điều hướng
+  void _onItemTapped(int index) {
+    if (index == 1) {
+      _showScanOptions();
+    } else {
+      setState(() {
+        _selectedIndex = index;
+      });
     }
   }
 
-  // Hàm gửi ảnh tới API
-  Future<void> _uploadImage(File imageFile) async {
-    try {
-      final url = Uri.parse(API_Ocr);
-      final request = http.MultipartRequest('POST', url);
+  // Hiển thị popup với các tùy chọn quét
+  void _showScanOptions() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Các tùy chọn quét',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              SizedBox(height: 15),
+              _buildScanOption(Icons.perm_identity, 'Quét CCCD'),
+              _buildScanOption(Icons.file_copy, 'Quét mẫu có sẵn'),
+              _buildScanOption(Icons.note_add, 'Quét mẫu mới'),
+              _buildScanOption(Icons.table_chart, 'Quét dạng bảng'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-      // Thêm file vào request
-      request.files.add(await http.MultipartFile.fromPath(
-        'file', // Tên field trong body API
-        imageFile.path,
-      ));
-
-      final response = await request.send();
-
-      if (response.statusCode == 200) {
-        final responseData = await response.stream.bytesToString();
-        final decodedData = jsonDecode(responseData);
-        print('Upload thành công: $decodedData');
-
-        // Giải mã JSON
-
-        // Xử lý phản hồi từ server (nếu cần)
-      } else {
-        print('Upload thất bại: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Lỗi khi upload ảnh: $e');
-    }
+  // Widget tạo nút tùy chọn quét trong popup
+  Widget _buildScanOption(IconData icon, String label) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      child: ElevatedButton.icon(
+        onPressed: () {
+          Navigator.pop(context); // Đóng popup
+          if (label == 'Quét CCCD') {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => CameraScanCCCD()));
+          // } else if (label == 'Quét mẫu có sẵn') {
+          //   Navigator.push(context, MaterialPageRoute(builder: (_) => ExistingTemplatePage()));
+          // } else if (label == 'Quét mẫu mới') {
+          //   Navigator.push(context, MaterialPageRoute(builder: (_) => NewTemplatePage()));
+          // } else if (label == 'Quét dạng bảng') {
+          //   Navigator.push(context, MaterialPageRoute(builder: (_) => TableScanPage()));
+          }
+        },
+        icon: Icon(icon),
+        label: Text(label),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Color(0xFF1F3C88),
+          foregroundColor: Colors.white,
+          minimumSize: Size(double.infinity, 48),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Trang chủ'),
+        title: Text(
+          'Xin Chào',
+          style: TextStyle(color: Colors.black, fontSize: 24),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.notifications_none),
+            onPressed: () {},
+            color: Colors.black,
+          ),
+        ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Chào mừng đến với ứng dụng'),
-            SizedBox(height: 20),
-            _image != null
-                ? Image.file(File(_image!.path), width: 200, height: 200)
-                : Text('Chưa có ảnh nào được chụp'),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _takePicture,
-              child: Text('Chụp ảnh'),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Phạm Duy', // Tên người dùng, có thể thay bằng SharedPreferences
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                SizedBox(height: 20),
+                Image.asset(
+                  'assets/illustration.png', // Đảm bảo đường dẫn hình ảnh đúng
+                  height: 350,
+                  width: double.infinity,
+                  // fit: BoxFit.cover,
+                ),
+                SizedBox(height: 20),
+                _buildFileCard(
+                  Icons.credit_card,
+                  'Thông tin CCCD đã lưu',
+                  '5 File',
+                ),
+                SizedBox(height: 12),
+                _buildFileCard(
+                  Icons.insert_drive_file,
+                  'Mẫu đã lưu',
+                  '22 File',
+                ),
+              ],
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () async {
-                // Xóa token khi logout
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.remove('access_token');
-                await prefs.remove('refresh_token');
-
-                // Quay về màn hình login
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()),
-                      (route) => false,
-                );
-              },
-              child: Text('Đăng xuất'),
+          ),
+        ),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        shape: CircularNotchedRectangle(),
+        notchMargin: 8.0,
+        color: Colors.white,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            IconButton(
+              icon: Icon(
+                Icons.home,
+                color: _selectedIndex == 0 ? Color(0xFF1F3C88) : Colors.grey,
+              ),
+              onPressed: () => _onItemTapped(0),
+            ),
+            SizedBox(width: 10), // Khoảng cách cho nút quét ở giữa
+            IconButton(
+              icon: Icon(
+                Icons.person,
+                color: _selectedIndex == 2 ? Color(0xFF1F3C88) : Colors.grey,
+              ),
+              onPressed: () => _onItemTapped(2),
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _onItemTapped(1),
+        backgroundColor: Color(0xFF1F3C88),
+        child: Icon(Icons.qr_code_scanner, color: Colors.white),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+    );
+  }
+
+  // Widget tạo thẻ tệp (File Card)
+  Widget _buildFileCard(IconData icon, String title, String subtitle) {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Color(0xFFF0F1F5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Color(0xFFD6D9F1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: Color(0xFF1F3C88)),
+          ),
+          SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.black,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.arrow_forward_ios,
+            size: 16,
+            color: Colors.grey,
+          ),
+        ],
       ),
     );
   }

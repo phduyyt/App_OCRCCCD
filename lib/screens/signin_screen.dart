@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:untitled1/constant/constant.dart';
 import 'package:untitled1/screens/login_screen.dart';
+import 'package:untitled1/utils/snackbar.dart';
+
 class RegisterScreen extends StatefulWidget {
   @override
   _RegisterScreenState createState() => _RegisterScreenState();
@@ -10,6 +12,7 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -19,61 +22,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
-      String username = _usernameController.text;
-      String phone = _phoneController.text;
-      String password = _passwordController.text;
-      String confirmPassword = _confirmPasswordController.text;
-
-      if (password != confirmPassword) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Mật khẩu xác nhận không khớp'), backgroundColor: Colors.red),
-        );
+      if (_passwordController.text != _confirmPasswordController.text) {
+        showCustomSnackBar(context, 'Mật khẩu xác nhận không khớp', backgroundColor: Colors.redAccent);
         return;
       }
 
-      setState(() {
-        _isLoading = true;
-      });
+      setState(() => _isLoading = true);
 
       try {
         final response = await http.post(
           Uri.parse(API_Register),
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
+          headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
-            'username': username,
-            'phone': phone,
-            'password': password,
+            'name': _nameController.text,
+            'username': _usernameController.text,
+            'phone': _phoneController.text,
+            'password': _passwordController.text,
           }),
         );
 
         final responseData = jsonDecode(response.body);
 
         if (response.statusCode == 201) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Đăng ký thành công! Vui lòng đăng nhập.')),
-          );
-
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => LoginScreen()),
-          );
+          showCustomSnackBar(context, 'Đăng ký thành công!', backgroundColor: Colors.greenAccent);
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => LoginScreen()));
         } else {
-          String errorMessage = responseData['message'] ?? 'Đăng ký thất bại';
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
-          );
+          showCustomSnackBar(context, responseData['message'] ?? 'Đăng ký thất bại', backgroundColor: Colors.redAccent);
         }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi kết nối đến server: $e'), backgroundColor: Colors.red),
-        );
+        showCustomSnackBar(context, 'Lỗi kết nối: $e', backgroundColor: Colors.redAccent);
       } finally {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
       }
     }
   }
@@ -81,103 +60,100 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          icon: Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Text(
-                  'Register',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(Icons.person_add_alt_1, size: 90, color: Colors.deepPurpleAccent),
+                SizedBox(height: 20),
+                Text(
+                  'Tạo tài khoản mới',
+                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                 ),
-              ),
-              SizedBox(height: 20),
-              _buildTextField(
-                controller: _usernameController,
-                label: 'Tên tài khoản',
-                icon: Icons.person,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Vui lòng nhập tên tài khoản';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 15),
-              _buildTextField(
-                controller: _phoneController,
-                label: 'Số điện thoại',
-                icon: Icons.phone,
-                keyboardType: TextInputType.phone,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Vui lòng nhập số điện thoại';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 15),
-              _buildTextField(
-                controller: _passwordController,
-                label: 'Mật khẩu',
-                icon: Icons.lock,
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Vui lòng nhập mật khẩu';
-                  }
-                  if (value.length < 6) {
-                    return 'Mật khẩu phải có ít nhất 6 ký tự';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 15),
-              _buildTextField(
-                controller: _confirmPasswordController,
-                label: 'Xác nhận lại mật khẩu',
-                icon: Icons.lock,
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Vui lòng xác nhận lại mật khẩu';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 30),
-              Center(
-                child: _isLoading
-                    ? CircularProgressIndicator()
+                SizedBox(height: 30),
+                _buildTextField(
+                  controller: _nameController,
+                  label: 'Họ và tên',
+                  icon: Icons.person,
+                ),
+                SizedBox(height: 15),
+                _buildTextField(
+                  controller: _usernameController,
+                  label: 'Tên tài khoản',
+                  icon: Icons.account_box,
+                ),
+                SizedBox(height: 15),
+                _buildTextField(
+                  controller: _phoneController,
+                  label: 'Số điện thoại',
+                  icon: Icons.phone_outlined,
+                  keyboardType: TextInputType.phone,
+                ),
+                SizedBox(height: 15),
+                _buildTextField(
+                  controller: _passwordController,
+                  label: 'Mật khẩu',
+                  icon: Icons.lock_outline,
+                  obscureText: true,
+                ),
+                SizedBox(height: 15),
+                _buildTextField(
+                  controller: _confirmPasswordController,
+                  label: 'Xác nhận mật khẩu',
+                  icon: Icons.lock_outline,
+                  obscureText: true,
+                ),
+                SizedBox(height: 30),
+                _isLoading
+                    ? CircularProgressIndicator(color: Colors.deepPurpleAccent)
                     : ElevatedButton(
                   onPressed: _register,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFFB3A0FF), // Màu tím nhạt
+                    backgroundColor: Colors.deepPurpleAccent,
                     minimumSize: Size(double.infinity, 50),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(12),
                     ),
+                    elevation: 5,
+                    shadowColor: Colors.deepPurpleAccent.withOpacity(0.4),
                   ),
                   child: Text(
                     'Đăng ký',
-                    style: TextStyle(fontSize: 16, color: Colors.white),
+                    style: TextStyle(fontSize: 18, color: Colors.white),
                   ),
                 ),
-              ),
-            ],
+                SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Đã có tài khoản?', style: TextStyle(fontSize: 16)),
+                    TextButton(
+                      onPressed: () => Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => LoginScreen()),
+                      ),
+                      child: Text(
+                        'Đăng nhập ngay',
+                        style: TextStyle(fontSize: 16, color: Colors.deepPurpleAccent),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -190,20 +166,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
     required IconData icon,
     bool obscureText = false,
     TextInputType keyboardType = TextInputType.text,
-    String? Function(String?)? validator,
   }) {
-    return TextFormField(
-      controller: controller,
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: Colors.black54),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade300,
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
-      validator: validator,
+      child: TextFormField(
+        controller: controller,
+        obscureText: obscureText,
+        keyboardType: keyboardType,
+        decoration: InputDecoration(
+          prefixIcon: Icon(icon, color: Colors.deepPurpleAccent),
+          labelText: label,
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) return 'Vui lòng nhập $label';
+          if (label == 'Mật khẩu' && value.length < 6) return 'Mật khẩu phải có ít nhất 6 ký tự';
+          return null;
+        },
+      ),
     );
   }
 }
