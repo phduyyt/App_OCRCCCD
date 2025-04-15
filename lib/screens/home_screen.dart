@@ -1,13 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:untitled1/screens/cccd_screen/ocr_cccd.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
   State<HomeScreen> createState() => _HomeScreenState();
+
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 1;
+  String? name ;
+
+  @override
+  void initState(){
+    super.initState();
+    _loadUserName();
+  }
+
+  void _loadUserName() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      name = prefs.getString('name');
+    });
+  }
 
   // Xử lý khi nhấn vào các mục trên thanh điều hướng
   void _onItemTapped(int index) {
@@ -102,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Phạm Duy', // Tên người dùng, có thể thay bằng SharedPreferences
+                  '$name', // Tên người dùng, có thể thay bằng SharedPreferences
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,

@@ -31,13 +31,21 @@ class _LoginScreenState extends State<LoginScreen> {
             'password': _passwordController.text,
           }),
         );
+        final decodebody = utf8.decode(response.bodyBytes);
 
-        final data = jsonDecode(response.body);
+        final data = jsonDecode(decodebody);
 
         if (response.statusCode == 200) {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('access_token', data['tokens']['access']);
           await prefs.setString('refresh_token', data['tokens']['refresh']);
+
+          //Lưu thông tin User
+          await prefs.setString('name', data['user']['name']);
+          await prefs.setString('email', data['user']['email']);
+          await prefs.setString('phone', data['user']['phone']);
+          await prefs.setString('address', data['user']['address']);
+
 
           showCustomSnackBar(context, 'Đăng nhập thành công!', backgroundColor: Colors.greenAccent);
 
