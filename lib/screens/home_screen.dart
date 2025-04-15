@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:untitled1/screens/cccd_screen/ocr_cccd.dart';
+import 'package:untitled1/screens/userr/user_main.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -29,7 +30,13 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onItemTapped(int index) {
     if (index == 1) {
       _showScanOptions();
-    } else {
+    } else if(index == 2){
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => UserMainScreen()),
+      );
+    }
+    else {
       setState(() {
         _selectedIndex = index;
       });
@@ -118,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '$name', // Tên người dùng, có thể thay bằng SharedPreferences
+                  '$name',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
