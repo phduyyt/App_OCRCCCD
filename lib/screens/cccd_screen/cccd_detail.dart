@@ -4,16 +4,16 @@ import 'package:http/http.dart' as http;
 import 'package:untitled1/constant/constant.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class CCCDInfoScreen extends StatefulWidget {
-  final Map<String, dynamic> ocrData;
+class CCCDDetailScreen extends StatefulWidget {
+  final Map<String, dynamic> Data;
 
-  const CCCDInfoScreen({Key? key, required this.ocrData}) : super(key: key);
+  const CCCDDetailScreen({Key? key, required this.Data}) : super(key: key);
 
   @override
-  State<CCCDInfoScreen> createState() => _CCCDInfoScreenState();
+  _CCCDDetailScreenState createState() => _CCCDDetailScreenState();
 }
 
-class _CCCDInfoScreenState extends State<CCCDInfoScreen> {
+class _CCCDDetailScreenState extends State<CCCDDetailScreen> {
   late final TextEditingController _idNumberController;
   late final TextEditingController _nameController;
   late final TextEditingController _dobController;
@@ -22,20 +22,22 @@ class _CCCDInfoScreenState extends State<CCCDInfoScreen> {
   late final TextEditingController _originPlaceController;
   late final TextEditingController _currentPlaceController;
   late final TextEditingController _expireDateController;
+  String? idCCCD;
 
   bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    _idNumberController = TextEditingController(text: widget.ocrData['id_number'] ?? '');
-    _nameController = TextEditingController(text: widget.ocrData['name'] ?? '');
-    _dobController = TextEditingController(text: widget.ocrData['dob'] ?? '');
-    _genderController = TextEditingController(text: widget.ocrData['gender'] ?? '');
-    _nationalityController = TextEditingController(text: widget.ocrData['nationality'] ?? '');
-    _originPlaceController = TextEditingController(text: widget.ocrData['origin_place'] ?? '');
-    _currentPlaceController = TextEditingController(text: widget.ocrData['current_place'] ?? '');
-    _expireDateController = TextEditingController(text: widget.ocrData['expire_date'] ?? '');
+    idCCCD = widget.Data['cccd_id'] ?? '';
+    _idNumberController = TextEditingController(text: widget.Data['id_number'] ?? '');
+    _nameController = TextEditingController(text: widget.Data['name'] ?? '');
+    _dobController = TextEditingController(text: widget.Data['dob'] ?? '');
+    _genderController = TextEditingController(text: widget.Data['gender'] ?? '');
+    _nationalityController = TextEditingController(text: widget.Data['nationality'] ?? '');
+    _originPlaceController = TextEditingController(text: widget.Data['origin_place'] ?? '');
+    _currentPlaceController = TextEditingController(text: widget.Data['current_place'] ?? '');
+    _expireDateController = TextEditingController(text: widget.Data['expire_date'] ?? '');
   }
 
   @override
@@ -56,14 +58,8 @@ class _CCCDInfoScreenState extends State<CCCDInfoScreen> {
       _isSaving = true;
     });
 
-    int? user_id;
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      user_id = prefs.getInt('user_id');
-    });
-
     final dataToSend = {
-      'user_id': user_id,
+      'cccd_id': idCCCD,
       'id_number': _idNumberController.text,
       'name': _nameController.text,
       'dob': _dobController.text,
@@ -73,10 +69,10 @@ class _CCCDInfoScreenState extends State<CCCDInfoScreen> {
       'current_place': _currentPlaceController.text,
       'expire_date': _expireDateController.text,
     };
-    print(dataToSend);
+
     try {
-      final response = await http.post(
-        Uri.parse(API_CCCD),
+      final response = await http.patch(
+        Uri.parse(API_Update_CCCD_ByID),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(dataToSend),
       );
@@ -102,6 +98,56 @@ class _CCCDInfoScreenState extends State<CCCDInfoScreen> {
         _isSaving = false;
       });
     }
+  }
+
+  Future<void> _deleteData() async {
+    try {
+      final response = await http.delete(
+        Uri.parse(API_Delete_CCCD_ByID),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'cccd_id': idCCCD}),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Xóa thành công!')),
+        );
+
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi xóa: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi kết nối: $e')),
+      );
+    }
+  }
+
+  // Xác nhận xóa dữ liệu
+  void _confirmDelete() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Xóa thông tin CCCD'),
+        content: Text('Bạn có chắc chắn muốn xóa thông tin này không?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context), // Đóng dialog
+            child: Text('Hủy'),
+          ),
+          TextButton(
+            onPressed: () {
+              _deleteData();  // Gọi API xóa
+              Navigator.pop(context);  // Đóng dialog
+            },
+            child: Text('Xóa'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -132,17 +178,34 @@ class _CCCDInfoScreenState extends State<CCCDInfoScreen> {
             const SizedBox(height: 30),
             _isSaving
                 ? CircularProgressIndicator(color: Colors.white)
-                : ElevatedButton(
-              onPressed: _saveDataToApi,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.purpleAccent,
-                minimumSize: Size(double.infinity, 48),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+                : Column(
+              children: [
+                ElevatedButton(
+                  onPressed: _saveDataToApi,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.purpleAccent,
+                    minimumSize: Size(double.infinity, 48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text('Lưu',
+                      style: TextStyle(color: Colors.white, fontSize: 16)),
                 ),
-              ),
-              child: Text('Lưu',
-                  style: TextStyle(color: Colors.white, fontSize: 16)),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: _confirmDelete, // Hiển thị hộp thoại xác nhận xóa
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    minimumSize: Size(double.infinity, 48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text('Xóa',
+                      style: TextStyle(color: Colors.white, fontSize: 16)),
+                ),
+              ],
             ),
           ],
         ),

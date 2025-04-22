@@ -4,13 +4,12 @@ import 'package:flutter/material.dart';
 ///
 /// [context]: BuildContext hiện tại.
 /// [message]: Nội dung cần hiển thị.
-/// [backgroundColor]: Màu nền của SnackBar (mặc định: xanh lá).
-/// [duration]: Thời gian tồn tại của SnackBar (mặc định: 2 giây).
+/// [backgroundColor]: Màu nền của SnackBar (mặc định: xanh
 void showCustomSnackBar(
     BuildContext context,
     String message, {
       Color backgroundColor = Colors.green,
-      Duration duration = const Duration(seconds: 2),
+      Duration duration = const Duration(seconds: 1),
     }) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(

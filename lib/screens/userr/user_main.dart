@@ -66,12 +66,6 @@ class _UserMainScreenState extends State<UserMainScreen> {
                 SizedBox(width: 16),
                 Expanded(
                   child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => UserDetailsScreen()),
-                      );
-                    },
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -92,7 +86,6 @@ class _UserMainScreenState extends State<UserMainScreen> {
             Navigator.pushNamed(
               context, '/change-password');
           }),
-          _buildTile(icon: Icons.security, title: 'Xác thực 2 bước'),
           _buildTile(icon: Icons.share, title: 'Giới thiệu cho bạn bè'),
           _buildTile(icon: Icons.info, title: 'Thông tin sản phẩm'),
           Padding(

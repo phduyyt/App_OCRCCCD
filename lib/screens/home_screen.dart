@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:untitled1/screens/cccd_screen/ocr_cccd.dart';
+import 'package:untitled1/screens/cccd_screen/save_cccd.dart'; // Import màn hình SavedCCCDScreen
 import 'package:untitled1/screens/userr/user_main.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
   State<HomeScreen> createState() => _HomeScreenState();
-
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 1;
-  String? name ;
+  String? name;
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     _loadUserName();
   }
@@ -30,13 +30,12 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onItemTapped(int index) {
     if (index == 1) {
       _showScanOptions();
-    } else if(index == 2){
+    } else if (index == 2) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => UserMainScreen()),
       );
-    }
-    else {
+    } else {
       setState(() {
         _selectedIndex = index;
       });
@@ -79,12 +78,6 @@ class _HomeScreenState extends State<HomeScreen> {
           Navigator.pop(context); // Đóng popup
           if (label == 'Quét CCCD') {
             Navigator.push(context, MaterialPageRoute(builder: (_) => CameraScanCCCD()));
-          // } else if (label == 'Quét mẫu có sẵn') {
-          //   Navigator.push(context, MaterialPageRoute(builder: (_) => ExistingTemplatePage()));
-          // } else if (label == 'Quét mẫu mới') {
-          //   Navigator.push(context, MaterialPageRoute(builder: (_) => NewTemplatePage()));
-          // } else if (label == 'Quét dạng bảng') {
-          //   Navigator.push(context, MaterialPageRoute(builder: (_) => TableScanPage()));
           }
         },
         icon: Icon(icon),
@@ -94,6 +87,67 @@ class _HomeScreenState extends State<HomeScreen> {
           foregroundColor: Colors.white,
           minimumSize: Size(double.infinity, 48),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      ),
+    );
+  }
+
+  // Widget tạo thẻ tệp (File Card)
+  Widget _buildFileCard(IconData icon, String title, String subtitle) {
+    return GestureDetector(
+      onTap: () {
+        // Khi người dùng nhấn vào thẻ "Thông tin CCCD đã lưu"
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => SavedCCCDScreen()), // Điều hướng đến màn hình danh sách CCCD
+        );
+      },
+      child: Container(
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Color(0xFFF0F1F5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Color(0xFFD6D9F1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: Color(0xFF1F3C88)),
+            ),
+            SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.black,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: Colors.grey,
+            ),
+          ],
         ),
       ),
     );
@@ -137,19 +191,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   'assets/illustration.png', // Đảm bảo đường dẫn hình ảnh đúng
                   height: 350,
                   width: double.infinity,
-                  // fit: BoxFit.cover,
                 ),
                 SizedBox(height: 20),
                 _buildFileCard(
                   Icons.credit_card,
                   'Thông tin CCCD đã lưu',
-                  '5 File',
+                  '5 File', // Số lượng file có thể lấy từ API hoặc SharedPreferences
                 ),
                 SizedBox(height: 12),
                 _buildFileCard(
                   Icons.insert_drive_file,
                   'Mẫu đã lưu',
-                  '22 File',
+                  '22 File', // Số lượng mẫu có thể lấy từ API hoặc SharedPreferences
                 ),
               ],
             ),
@@ -187,58 +240,6 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Icon(Icons.qr_code_scanner, color: Colors.white),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-    );
-  }
-
-  // Widget tạo thẻ tệp (File Card)
-  Widget _buildFileCard(IconData icon, String title, String subtitle) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Color(0xFFF0F1F5),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Color(0xFFD6D9F1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: Color(0xFF1F3C88)),
-          ),
-          SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Colors.black,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(
-            Icons.arrow_forward_ios,
-            size: 16,
-            color: Colors.grey,
-          ),
-        ],
-      ),
     );
   }
 }

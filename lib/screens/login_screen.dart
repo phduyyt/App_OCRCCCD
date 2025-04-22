@@ -42,6 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
           //Lưu thông tin User
           await prefs.setString('name', data['user']['name']);
+          await prefs.setInt('user_id', data['user']['id']);
           await prefs.setString('email', data['user']['email']);
           await prefs.setString('phone', data['user']['phone']);
           await prefs.setString('address', data['user']['address']);
