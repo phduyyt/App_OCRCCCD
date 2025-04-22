@@ -3,6 +3,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:image_picker/image_picker.dart'; // Import image_picker package
 import 'preview_screen.dart'; // Import màn hình preview
 
 class CameraScanCCCD extends StatefulWidget {
@@ -10,25 +11,6 @@ class CameraScanCCCD extends StatefulWidget {
 
   @override
   State<CameraScanCCCD> createState() => _CameraScanCCCDState();
-}
-
-class BorderFramePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white
-      ..strokeWidth = 4
-      ..style = PaintingStyle.stroke;
-
-    final borderRect = Rect.fromLTWH(40, 100, size.width - 80, size.height - 200);
-    final borderRadius = BorderRadius.circular(12);
-
-    final rrect = borderRadius.toRRect(borderRect);
-    canvas.drawRRect(rrect, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _CameraScanCCCDState extends State<CameraScanCCCD> {
@@ -94,6 +76,29 @@ class _CameraScanCCCDState extends State<CameraScanCCCD> {
     return filePath;
   }
 
+  // Hàm chọn ảnh từ thư viện
+  Future<void> _pickImageFromGallery() async {
+    final picker = ImagePicker();
+    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _capturedImage = pickedFile;
+      });
+
+      // Lưu ảnh tạm thời
+      final savedPath = await _saveImage(pickedFile);
+
+      // Chuyển hướng đến màn hình preview
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PreviewScreen(imagePath: savedPath),
+        ),
+      );
+    }
+  }
+
   @override
   void dispose() {
     _controller?.dispose();
@@ -129,23 +134,13 @@ class _CameraScanCCCDState extends State<CameraScanCCCD> {
             color: Colors.black.withOpacity(0.5),
           ),
 
-          // Khung viền định vị CCCD
-          Center(
-            child: AspectRatio(
-              aspectRatio: 1.6, // Tỷ lệ khung hình của CCCD
-              child: CustomPaint(
-                painter: BorderFramePainter(),
-              ),
-            ),
-          ),
-
           // Thông báo hướng dẫn
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
-              padding: const EdgeInsets.only(bottom: 100),
+              padding: const EdgeInsets.only(bottom: 150),
               child: Text(
-                'Bận vui lòng đặt vị trí CCCD\nkhớp với khung hình',
+                'Vui lòng đặt CCCD vào khung hình',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.white,
@@ -156,7 +151,21 @@ class _CameraScanCCCDState extends State<CameraScanCCCD> {
             ),
           ),
 
-          // Nút chụp
+          // Nút chọn ảnh từ thư viện (góc trái dưới)
+          Positioned(
+            bottom: 30,
+            left: 20, // Đặt ở góc trái
+            child: IconButton(
+              icon: Icon(
+                Icons.image,
+                color: Colors.white,
+                size: 30,
+              ),
+              onPressed: _pickImageFromGallery,
+            ),
+          ),
+
+          // Nút chụp ảnh (chính giữa dưới)
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(

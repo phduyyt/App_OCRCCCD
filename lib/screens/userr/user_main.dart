@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:untitled1/screens/userr/user_details.dart';
-import 'package:untitled1/screens/userr/change_password.dart';
 
 class UserMainScreen extends StatefulWidget {
   @override
