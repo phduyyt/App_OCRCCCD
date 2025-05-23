@@ -31,6 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
             'password': _passwordController.text,
           }),
         );
+
         final decodebody = utf8.decode(response.bodyBytes);
 
         final data = jsonDecode(decodebody);
@@ -63,6 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       } catch (e) {
         showCustomSnackBar(context, 'Lỗi kết nối: $e', backgroundColor: Colors.redAccent);
+        print(e);
       } finally {
         setState(() => _isLoading = false);
       }

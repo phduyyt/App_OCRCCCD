@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:untitled1/screens/cccd_screen/ocr_cccd.dart';
-import 'package:untitled1/screens/cccd_screen/save_cccd.dart'; // Import màn hình SavedCCCDScreen
+import 'package:untitled1/screens/text_screen/ocr_text.dart';
+import 'package:untitled1/screens/table_screens/ocr_table.dart';
+import 'package:untitled1/screens/cccd_screen/save_cccd.dart';
 import 'package:untitled1/screens/userr/user_main.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -78,6 +80,12 @@ class _HomeScreenState extends State<HomeScreen> {
           Navigator.pop(context); // Đóng popup
           if (label == 'Quét CCCD') {
             Navigator.push(context, MaterialPageRoute(builder: (_) => CameraScanCCCD()));
+          }
+          else if(label == 'Quét mẫu mới') {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => CameraScanText()));
+          }
+          else if(label == 'Quét dạng bảng') {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => CameraScanTable()));
           }
         },
         icon: Icon(icon),

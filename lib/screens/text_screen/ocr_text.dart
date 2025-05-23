@@ -3,17 +3,17 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
-import 'package:image_picker/image_picker.dart'; // Import image_picker package
-import 'preview_screen.dart'; // Import màn hình preview
+import 'package:image_picker/image_picker.dart';
+import 'package:untitled1/screens/text_screen//preview_screen.dart';
 
-class CameraScanCCCD extends StatefulWidget {
-  const CameraScanCCCD({Key? key}) : super(key: key);
+class CameraScanText extends StatefulWidget {
+  const CameraScanText({Key? key}) : super(key: key);
 
   @override
-  State<CameraScanCCCD> createState() => _CameraScanCCCDState();
+  State<CameraScanText> createState() => _CameraScanTextState();
 }
 
-class _CameraScanCCCDState extends State<CameraScanCCCD> {
+class _CameraScanTextState extends State<CameraScanText> {
   CameraController? _controller;
   late List<CameraDescription> _cameras;
   bool _isCameraInitialized = false;
@@ -58,7 +58,7 @@ class _CameraScanCCCDState extends State<CameraScanCCCD> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => PreviewScreen(imagePath: savedPath,),
+          builder: (context) => PreviewScreen(imagePath: savedPath),
         ),
       );
     } catch (e) {
@@ -69,7 +69,7 @@ class _CameraScanCCCDState extends State<CameraScanCCCD> {
   // Hàm lưu ảnh vào thư mục tạm
   Future<String> _saveImage(XFile image) async {
     final directory = await getTemporaryDirectory();
-    final fileName = 'cccd_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final fileName = 'text_${DateTime.now().millisecondsSinceEpoch}.jpg';
     final filePath = path.join(directory.path, fileName);
     final file = File(filePath);
     await file.writeAsBytes(await image.readAsBytes());
@@ -93,7 +93,7 @@ class _CameraScanCCCDState extends State<CameraScanCCCD> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => PreviewScreen(imagePath: savedPath,),
+          builder: (context) => PreviewScreen(imagePath: savedPath),
         ),
       );
     }
@@ -113,7 +113,7 @@ class _CameraScanCCCDState extends State<CameraScanCCCD> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(
-          'Quét CCCD',
+          'Quét văn bản',
           style: TextStyle(color: Colors.white),
         ),
         leading: IconButton(
@@ -140,7 +140,7 @@ class _CameraScanCCCDState extends State<CameraScanCCCD> {
             child: Padding(
               padding: const EdgeInsets.only(bottom: 150),
               child: Text(
-                'Vui lòng đặt CCCD vào khung hình',
+                'Vui lòng đặt đoạn văn bản vào khung hình',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.white,

@@ -8,7 +8,7 @@ import 'cccd_info_screen.dart'; // Import màn hình thông tin CCCD
 class PreviewScreen extends StatefulWidget {
   final String imagePath;
 
-  const PreviewScreen({Key? key, required this.imagePath}) : super(key: key);
+  const PreviewScreen({Key? key, required this.imagePath }) : super(key: key);
 
   @override
   _PreviewScreenState createState() => _PreviewScreenState();
