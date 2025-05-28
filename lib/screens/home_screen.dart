@@ -4,7 +4,11 @@ import 'package:untitled1/screens/cccd_screen/ocr_cccd.dart';
 import 'package:untitled1/screens/text_screen/ocr_text.dart';
 import 'package:untitled1/screens/table_screens/ocr_table.dart';
 import 'package:untitled1/screens/cccd_screen/save_cccd.dart';
+import 'package:untitled1/screens/cccd_screen/save_documents.dart';
 import 'package:untitled1/screens/userr/user_main.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:untitled1/constant/constant.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -14,11 +18,23 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 1;
   String? name;
-
+  int cccdFileCount = 0;
+  int documentFileCount = 0;
   @override
   void initState() {
     super.initState();
     _loadUserName();
+    _loadFileCounts();
+  }
+
+  void _loadFileCounts() async {
+    final cccdCount = await fetchCCCDFileCount();
+    final documentCount = await fetchDocumentFileCount();
+
+    setState(() {
+      cccdFileCount = cccdCount;
+      documentFileCount = documentCount;
+    });
   }
 
   void _loadUserName() async {
@@ -28,7 +44,33 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  // Xử lý khi nhấn vào các mục trên thanh điều hướng
+  Future<int> fetchDocumentFileCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getInt('user_id');
+    if (userId == null) return 0;
+
+    final response = await http.get(Uri.parse('$API_Document_Count?user_id=$userId'));
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['count'] ?? 0;
+    }
+    return 0;
+  }
+
+  Future<int> fetchCCCDFileCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getInt('user_id');
+    if (userId == null) return 0;
+
+    final response = await http.get(Uri.parse('$API_CCCD_Count?user_id=$userId'));
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['count'] ?? 0;
+    }
+    return 0;
+  }
+
+
   void _onItemTapped(int index) {
     if (index == 1) {
       _showScanOptions();
@@ -44,7 +86,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Hiển thị popup với các tùy chọn quét
   void _showScanOptions() {
     showDialog(
       context: context,
@@ -71,20 +112,17 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Widget tạo nút tùy chọn quét trong popup
   Widget _buildScanOption(IconData icon, String label) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: ElevatedButton.icon(
         onPressed: () {
-          Navigator.pop(context); // Đóng popup
+          Navigator.pop(context);
           if (label == 'Quét CCCD') {
             Navigator.push(context, MaterialPageRoute(builder: (_) => CameraScanCCCD()));
-          }
-          else if(label == 'Quét mẫu mới') {
+          } else if (label == 'Quét mẫu mới') {
             Navigator.push(context, MaterialPageRoute(builder: (_) => CameraScanText()));
-          }
-          else if(label == 'Quét dạng bảng') {
+          } else if (label == 'Quét dạng bảng') {
             Navigator.push(context, MaterialPageRoute(builder: (_) => CameraScanTable()));
           }
         },
@@ -100,16 +138,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Widget tạo thẻ tệp (File Card)
-  Widget _buildFileCard(IconData icon, String title, String subtitle) {
+  // Chỉnh sửa _buildFileCard nhận onTap callback
+  Widget _buildFileCard(IconData icon, String title, String subtitle, VoidCallback onTap) {
     return GestureDetector(
-      onTap: () {
-        // Khi người dùng nhấn vào thẻ "Thông tin CCCD đã lưu"
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => SavedCCCDScreen()), // Điều hướng đến màn hình danh sách CCCD
-        );
-      },
+      onTap: onTap,
       child: Container(
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -196,7 +228,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 SizedBox(height: 20),
                 Image.asset(
-                  'assets/illustration.png', // Đảm bảo đường dẫn hình ảnh đúng
+                  'assets/illustration.png',
                   height: 350,
                   width: double.infinity,
                 ),
@@ -204,13 +236,25 @@ class _HomeScreenState extends State<HomeScreen> {
                 _buildFileCard(
                   Icons.credit_card,
                   'Thông tin CCCD đã lưu',
-                  '5 File', // Số lượng file có thể lấy từ API hoặc SharedPreferences
+                  '$cccdFileCount File',
+                      () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => SavedCCCDScreen()),
+                    );
+                  },
                 ),
                 SizedBox(height: 12),
                 _buildFileCard(
                   Icons.insert_drive_file,
                   'Mẫu đã lưu',
-                  '22 File', // Số lượng mẫu có thể lấy từ API hoặc SharedPreferences
+                  '$documentFileCount File',
+                      () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => DocumentListScreen()),
+                    );
+                  },
                 ),
               ],
             ),
@@ -231,7 +275,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               onPressed: () => _onItemTapped(0),
             ),
-            SizedBox(width: 10), // Khoảng cách cho nút quét ở giữa
+            SizedBox(width: 10),
             IconButton(
               icon: Icon(
                 Icons.person,

@@ -10,5 +10,10 @@ const String API_Get_CCCD_ByID = 'http://$IP/CCCD_By_ID/';
 const String API_Update_CCCD_ByID = 'http://$IP/Update_CCCD_By_ID/';
 const String API_Delete_CCCD_ByID = 'http://$IP/Delete_CCCD_By_ID/';
 const String API_Text = 'http://$IP/OCR_Text/';
+const String API_Save = 'http://$IP/save_document/';
+const String API_Get_Document = 'http://$IP/list_documents_by_user/';
+const String API_CCCD_Count = 'http://$IP/CCCD_Count/';
+const String API_Document_Count = 'http://$IP/File_Count/';
+
 
 const String API_Table ='http://192.168.1.225:8686/extract_table/';

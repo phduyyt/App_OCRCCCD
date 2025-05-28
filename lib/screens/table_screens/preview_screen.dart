@@ -17,9 +17,9 @@ class PreviewScreen extends StatefulWidget {
 class _PreviewScreenState extends State<PreviewScreen> {
   bool _isLoading = false; // Quản lý trạng thái loading
 
-  Future<String?> uploadImageAndGetText(BuildContext context, String imagePath) async {
+  Future<Map<String, String>?> uploadImageAndGetText(BuildContext context, String imagePath) async {
     setState(() {
-      _isLoading = true; // Bắt đầu loading
+      _isLoading = true;
     });
 
     try {
@@ -40,13 +40,14 @@ class _PreviewScreenState extends State<PreviewScreen> {
         }
 
         final directory = await getApplicationDocumentsDirectory();
-        final fileName = 'ocr_result.xlsx';
+        final now = DateTime.now();
+        final formatted = "${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}_${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}${now.second.toString().padLeft(2, '0')}";
+        final fileName = 'ocr_result_$formatted.xlsx';
         final filePath = File('${directory.path}/$fileName');
-
         await filePath.writeAsBytes(responseBodyBytes);
 
         print('Đã lưu OCR vào file: ${filePath.path}');
-        return filePath.path;
+        return {'filePath': filePath.path, 'fileName': fileName};
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Không tìm thấy dữ liệu, vui lòng thử lại!')),
@@ -64,7 +65,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
       return null;
     } finally {
       setState(() {
-        _isLoading = false; // Kết thúc loading
+        _isLoading = false;
       });
     }
   }
@@ -106,13 +107,13 @@ class _PreviewScreenState extends State<PreviewScreen> {
                 onPressed: _isLoading
                     ? null // Disable khi loading
                     : () async {
-                  final filePath = await uploadImageAndGetText(context, widget.imagePath);
-                  print(filePath);
-                  if (filePath != null) {
+                  final result = await uploadImageAndGetText(context, widget.imagePath);
+                  if (result != null) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ResultScreen(filePath: filePath,fileName: filePath,),
+                        builder: (context) => ResultScreen(filePath: result['filePath']!,
+                          fileName: result['fileName']!,),
                       ),
                     );
                   }

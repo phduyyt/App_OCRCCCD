@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:untitled1/screens/text_screen/result_text_screen.dart';
 import 'package:untitled1/constant/constant.dart';
 
+
 class PreviewScreen extends StatefulWidget {
   final String imagePath;
 
