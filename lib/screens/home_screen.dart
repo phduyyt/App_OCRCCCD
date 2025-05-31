@@ -102,7 +102,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               SizedBox(height: 15),
               _buildScanOption(Icons.perm_identity, 'Quét CCCD'),
-              _buildScanOption(Icons.file_copy, 'Quét mẫu có sẵn'),
               _buildScanOption(Icons.note_add, 'Quét mẫu mới'),
               _buildScanOption(Icons.table_chart, 'Quét dạng bảng'),
             ],

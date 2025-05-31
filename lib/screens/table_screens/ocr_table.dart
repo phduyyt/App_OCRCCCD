@@ -29,7 +29,7 @@ class _CameraScanTableState extends State<CameraScanTable> {
     _cameras = await availableCameras();
     _controller = CameraController(
       _cameras[0], // Camera sau
-      ResolutionPreset.medium,
+      ResolutionPreset.max,
       enableAudio: false,
     );
     await _controller!.initialize();

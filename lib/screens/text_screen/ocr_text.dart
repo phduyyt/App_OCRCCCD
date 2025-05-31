@@ -29,7 +29,7 @@ class _CameraScanTextState extends State<CameraScanText> {
     _cameras = await availableCameras();
     _controller = CameraController(
       _cameras[0], // Camera sau
-      ResolutionPreset.medium,
+      ResolutionPreset.max,
       enableAudio: false,
     );
     await _controller!.initialize();
@@ -113,7 +113,7 @@ class _CameraScanTextState extends State<CameraScanText> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(
-          'Quét văn bản',
+          'Quét mẫu mới',
           style: TextStyle(color: Colors.white),
         ),
         leading: IconButton(
@@ -134,22 +134,6 @@ class _CameraScanTextState extends State<CameraScanText> {
             color: Colors.black.withOpacity(0.5),
           ),
 
-          // Thông báo hướng dẫn
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 150),
-              child: Text(
-                'Vui lòng đặt đoạn văn bản vào khung hình',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ),
 
           // Nút chọn ảnh từ thư viện (góc trái dưới)
           Positioned(
