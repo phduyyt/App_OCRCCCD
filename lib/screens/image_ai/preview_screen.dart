@@ -3,9 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
-import 'package:untitled1/screens/text_screen/result_text_screen.dart';
+import 'package:untitled1/screens/image_ai//result_text_screen.dart';
 import 'package:untitled1/constant/constant.dart';
-
 
 class PreviewScreen extends StatefulWidget {
   final String imagePath;
@@ -18,22 +17,39 @@ class PreviewScreen extends StatefulWidget {
 
 class _PreviewScreenState extends State<PreviewScreen> {
   bool _isLoading = false;
+  final TextEditingController _questionController = TextEditingController();
 
-  Future<String?> uploadImageAndGetText(BuildContext context, String imagePath) async {
-    setState(() {
-      _isLoading = true;
-    });
+  @override
+  void dispose() {
+    _questionController.dispose();
+    super.dispose();
+  }
+
+  Future<String?> uploadImageAndGetText(
+      BuildContext context, String imagePath, String question) async {
+    setState(() => _isLoading = true);
 
     try {
-      final url = Uri.parse(API_Text);
-      final request = http.MultipartRequest('POST', url);
+      final file = File(imagePath);
+      if (!file.existsSync()) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ảnh không tồn tại')),
+        );
+        return null;
+      }
 
+      final uri = Uri.parse(API_Text_AI);
+      final request = http.MultipartRequest('POST', uri);
+
+      // Thêm file ảnh
       request.files.add(await http.MultipartFile.fromPath('file', imagePath));
 
-      final response = await request.send();
+      // Thêm trường question dạng form
+      request.fields['question'] = question;
 
-      if (response.statusCode == 200) {
-        final responseBodyBytes = await response.stream.toBytes();
+      final streamedResponse = await request.send().timeout(const Duration(seconds: 60));
+      if (streamedResponse.statusCode == 200) {
+        final responseBodyBytes = await streamedResponse.stream.toBytes();
         final responseBody = utf8.decode(responseBodyBytes);
 
         if (responseBody.isEmpty) {
@@ -44,16 +60,14 @@ class _PreviewScreenState extends State<PreviewScreen> {
         }
 
         final directory = await getApplicationDocumentsDirectory();
-        final fileName = 'ocr_result.txt';
-        final filePath = File('${directory.path}/$fileName');
+        final resultFile = File('${directory.path}/ocr_result.txt');
+        await resultFile.writeAsString(responseBody, encoding: utf8);
 
-        await filePath.writeAsString(responseBody, encoding: utf8);
-
-        print('Đã lưu OCR vào file: ${filePath.path}');
-        return filePath.path;
+        print('Đã lưu OCR vào file: ${resultFile.path}');
+        return resultFile.path;
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Không tìm thấy dữ liệu vui lòng thử lại!')),
+          SnackBar(content: Text('API trả về lỗi: ${streamedResponse.statusCode}')),
         );
         return null;
       }
@@ -67,9 +81,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
       );
       return null;
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
@@ -102,6 +114,28 @@ class _PreviewScreenState extends State<PreviewScreen> {
             ),
           ),
           Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: TextField(
+              controller: _questionController,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                labelText: 'Nhập câu hỏi',
+                labelStyle: const TextStyle(color: Colors.white70),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(color: Colors.white54),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.purpleAccent),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                fillColor: Colors.white10,
+                filled: true,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Padding(
             padding: const EdgeInsets.all(16.0),
             child: SizedBox(
               width: double.infinity,
@@ -110,7 +144,16 @@ class _PreviewScreenState extends State<PreviewScreen> {
                 onPressed: _isLoading
                     ? null
                     : () async {
-                  final filePath = await uploadImageAndGetText(context, widget.imagePath);
+                  final questionText = _questionController.text.trim();
+                  if (questionText.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Vui lòng nhập câu hỏi')),
+                    );
+                    return;
+                  }
+
+                  final filePath = await uploadImageAndGetText(
+                      context, widget.imagePath, questionText);
                   if (filePath != null) {
                     Navigator.push(
                       context,

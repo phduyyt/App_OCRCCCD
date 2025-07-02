@@ -42,7 +42,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
         return;
       }
 
-      final apiUrl = 'http://192.168.1.225:8000/list_documents_by_user/?user_id=$userId';
+      final apiUrl = 'http://192.168.178.78:8000/list_documents_by_user/?user_id=$userId';
       final response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -172,7 +172,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
               leading: _getFileIcon(doc['file_name'] ?? ''),
               title: Text(doc['file_name'] ?? ''),
               onTap: () async {
-                final fileName = doc['file_name'] ?? 'file_download';
+                final fileName = doc['file_name'] ?? 'file_download'; 
                 final fileUrl = doc['file_url'] ?? '';
                 if (fileUrl.isNotEmpty) {
                   await _downloadAndOpenFile(context, fileUrl, fileName);

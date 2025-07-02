@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:untitled1/screens/cccd_screen/ocr_cccd.dart';
 import 'package:untitled1/screens/text_screen/ocr_text.dart';
 import 'package:untitled1/screens/table_screens/ocr_table.dart';
+import 'package:untitled1/screens/image_ai/ocr_text.dart';
 import 'package:untitled1/screens/cccd_screen/save_cccd.dart';
 import 'package:untitled1/screens/cccd_screen/save_documents.dart';
 import 'package:untitled1/screens/userr/user_main.dart';
@@ -102,8 +103,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               SizedBox(height: 15),
               _buildScanOption(Icons.perm_identity, 'Quét CCCD'),
-              _buildScanOption(Icons.note_add, 'Quét mẫu mới'),
+              _buildScanOption(Icons.text_snippet, 'Quét văn bản'),
               _buildScanOption(Icons.table_chart, 'Quét dạng bảng'),
+              _buildScanOption(Icons.document_scanner, 'Phân tích hình ảnh'),
             ],
           ),
         ),
@@ -119,10 +121,12 @@ class _HomeScreenState extends State<HomeScreen> {
           Navigator.pop(context);
           if (label == 'Quét CCCD') {
             Navigator.push(context, MaterialPageRoute(builder: (_) => CameraScanCCCD()));
-          } else if (label == 'Quét mẫu mới') {
+          } else if (label == 'Quét văn bản') {
             Navigator.push(context, MaterialPageRoute(builder: (_) => CameraScanText()));
           } else if (label == 'Quét dạng bảng') {
             Navigator.push(context, MaterialPageRoute(builder: (_) => CameraScanTable()));
+          } else if (label == 'Phân tích hình ảnh') {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => CameraScanTextAI()));
           }
         },
         icon: Icon(icon),
